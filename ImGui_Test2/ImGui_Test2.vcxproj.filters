@@ -86,7 +86,7 @@
     <ClCompile Include="dx11\menu.cpp">
       <Filter>dx11</Filter>
     </ClCompile>
-    <ClCompile Include="inputhook.cpp">
+    <ClCompile Include="dx11\inputhook.cpp">
       <Filter>dx11</Filter>
     </ClCompile>
   </ItemGroup>
