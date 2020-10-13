@@ -4,3 +4,5 @@
 Credits: Sh0ckFR, ImGui
 
 ![Example](https://i.imgur.com/1XEevnW.png)
+
+See https://github.com/ocornut/imgui for in-depth examples of usage
