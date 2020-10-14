@@ -6,6 +6,7 @@ namespace DX11
 {
 #pragma region Members
 	typedef HRESULT(__stdcall* D3D11PresentHook) (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags);
+	typedef HRESULT(__stdcall* D3D11ResizeBuffersHook) (IDXGISwapChain* pSwapChain, UINT BufferCount, UINT Width, UINT Height, DXGI_FORMAT NewFormat, UINT SwapChainFlags);
 	typedef void(__stdcall* D3D11DrawIndexedHook) (ID3D11DeviceContext* pContext, UINT IndexCount, UINT StartIndexLocation, INT BaseVertexLocation);
 	typedef void(__stdcall* D3D11ClearRenderTargetViewHook) (ID3D11DeviceContext* pContext, ID3D11RenderTargetView* pRenderTargetView, const FLOAT ColorRGBA[4]);
 
@@ -21,6 +22,7 @@ namespace DX11
 	DWORD_PTR* pDeviceContextVTable = NULL;
 
 	D3D11PresentHook phookD3D11Present = NULL;
+	D3D11ResizeBuffersHook phookD3D11ResizeBuffers = NULL;
 	D3D11DrawIndexedHook phookD3D11DrawIndexed = NULL;
 	D3D11ClearRenderTargetViewHook phookD3D11ClearRenderTargetView = NULL;
 
@@ -61,9 +63,28 @@ namespace DX11
 			Menu::bIsOpen = !Menu::bIsOpen;
 		}
 
+		InputHook::ValidateHook(hWnd);
 		Menu::Render();
 
 		return phookD3D11Present(_pSwapChain, SyncInterval, Flags);
+	}
+
+	HRESULT __stdcall hookD3D11ResizeBuffers(IDXGISwapChain* _pSwapChain, UINT BufferCount, UINT Width, UINT Height, DXGI_FORMAT NewFormat, UINT SwapChainFlags)
+	{
+		ImGui_ImplDX11_InvalidateDeviceObjects();
+		if (nullptr != g_pRenderTargetView) 
+		{ 
+			g_pRenderTargetView->Release(); 
+			g_pRenderTargetView = nullptr; 
+		}
+		HRESULT RetVal = phookD3D11ResizeBuffers(_pSwapChain, BufferCount, Width, Height, NewFormat, SwapChainFlags);
+		if (SUCCEEDED(_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pRenderTargetTexture)))
+		{
+			pDevice->CreateRenderTargetView(pRenderTargetTexture, NULL, &g_pRenderTargetView);
+			ImGui_ImplDX11_CreateDeviceObjects();
+			pRenderTargetTexture->Release();
+		}
+		return RetVal;
 	}
 
 	void __stdcall hookD3D11DrawIndexed(ID3D11DeviceContext* pContext, UINT IndexCount, UINT StartIndexLocation, INT BaseVertexLocation)
@@ -85,6 +106,7 @@ namespace DX11
 				{
 					Sleep(120);
 					hWnd = FindWindowW(L"UnrealWindow", 0);
+					//hWnd = FindWindowW(0, "Specific Window Title");
 				}
 
 				ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
@@ -107,11 +129,13 @@ namespace DX11
 				pDeviceContextVTable = reinterpret_cast<DWORD_PTR*>(pContext);
 				pDeviceContextVTable = reinterpret_cast<DWORD_PTR*>(pDeviceContextVTable[0]);
 				phookD3D11Present = reinterpret_cast<D3D11PresentHook>(pSwapChainVtable[8]);
+				phookD3D11ResizeBuffers = reinterpret_cast<D3D11ResizeBuffersHook>(pSwapChainVtable[13]);
 				phookD3D11DrawIndexed = reinterpret_cast<D3D11DrawIndexedHook>(pDeviceContextVTable[12]);
 				phookD3D11ClearRenderTargetView = reinterpret_cast<D3D11ClearRenderTargetViewHook>(pDeviceContextVTable[50]);
 				if (DetourTransactionBegin() != NO_ERROR ||
 					DetourUpdateThread(GetCurrentThread()) != NO_ERROR ||
 					DetourAttach(&(PVOID&)phookD3D11Present, hookD3D11Present) != NO_ERROR ||
+					DetourAttach(&(PVOID&)phookD3D11ResizeBuffers, hookD3D11ResizeBuffers) != NO_ERROR ||
 					DetourAttach(&(PVOID&)phookD3D11DrawIndexed, hookD3D11DrawIndexed) != NO_ERROR ||
 					DetourAttach(&(PVOID&)phookD3D11ClearRenderTargetView, hookD3D11ClearRenderTargetView) != NO_ERROR ||
 					DetourTransactionCommit() != NO_ERROR)
@@ -136,6 +160,7 @@ namespace DX11
 		if (DetourTransactionBegin() != NO_ERROR ||
 			DetourUpdateThread(GetCurrentThread()) != NO_ERROR ||
 			DetourDetach(&(PVOID&)phookD3D11Present, hookD3D11Present) != NO_ERROR ||
+			DetourDetach(&(PVOID&)phookD3D11ResizeBuffers, hookD3D11ResizeBuffers) != NO_ERROR ||
 			DetourDetach(&(PVOID&)phookD3D11DrawIndexed, hookD3D11DrawIndexed) != NO_ERROR ||
 			DetourDetach(&(PVOID&)phookD3D11ClearRenderTargetView, hookD3D11ClearRenderTargetView) != NO_ERROR ||
 			DetourTransactionCommit() != NO_ERROR)

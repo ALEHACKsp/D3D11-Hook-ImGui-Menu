@@ -19,24 +19,8 @@ namespace DX11
 
 	void Menu::Render()
 	{
-		static bool no_titlebar = false;
-		static bool no_scrollbar = false;
-		static bool no_menu = true;
-		static bool no_move = false;
-		static bool no_resize = false;
-		static bool no_collapse = false;
-		static bool no_nav = false;
-		static bool no_background = false;
-
-		ImGuiWindowFlags window_flags = 0;
-		if (no_titlebar)        window_flags |= ImGuiWindowFlags_NoTitleBar;
-		if (no_scrollbar)       window_flags |= ImGuiWindowFlags_NoScrollbar;
-		if (!no_menu)           window_flags |= ImGuiWindowFlags_MenuBar;
-		if (no_move)            window_flags |= ImGuiWindowFlags_NoMove;
-		if (no_resize)          window_flags |= ImGuiWindowFlags_NoResize;
-		if (no_collapse)        window_flags |= ImGuiWindowFlags_NoCollapse;
-		if (no_nav)             window_flags |= ImGuiWindowFlags_NoNav;
-		if (no_background)      window_flags |= ImGuiWindowFlags_NoBackground;
+		static bool bOption1, bOption2, bOption3, bOption4, bOption5, bOption6;
+		static bool bOption7, bOption8, bOption9, bOption10, bOption11, bOption12;
 
 		ImGui_ImplDX11_NewFrame();
 		ImGui_ImplWin32_NewFrame();
@@ -46,58 +30,53 @@ namespace DX11
 		static std::once_flag start_pos_set;
 		std::call_once(start_pos_set, [&]() { ImGui::SetNextWindowPos(ImVec2(25, 25)); });
 
-		if (Menu::bIsOpen) 
+		if (Menu::bIsOpen)
 		{
 			ImGuiIO& io = ImGui::GetIO();
-			//ImGui::GetStyle().WindowPadding = ImVec2(5, 5);
 
-			ImGui::Begin("Main Menu", &Menu::bIsOpen, window_flags);
+			ImGui::Begin("Main Menu##1", &Menu::bIsOpen);
 
-			if (ImGui::CollapsingHeader("Sample Menu A"))
+			if (ImGui::CollapsingHeader("Configuration##1", ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				ImGui::Checkbox("Block mouse input", &InputHook::bBlockInput); ImGui::SameLine();
-				HelpMarker("Blocks the mouse input from interacting with the game if this is checked");
-				ImGui::Checkbox("Drag only with titlebar", &io.ConfigWindowsMoveFromTitleBarOnly);
-
-				static int clicked = 0;
-				if (ImGui::Button("Button"))
-					clicked++;
-				if (clicked & 1)
+				if (ImGui::TreeNodeEx("Selections##1", ImGuiTreeNodeFlags_DefaultOpen))
 				{
-					ImGui::SameLine();
-					ImGui::Text("Thanks for clicking me!");
+					ImGui::Checkbox("Block mouse input", &InputHook::bBlockInput);
+					ImGui::SameLine(); HelpMarker("Blocks the mouse input from interacting with the game if this is checked");
+					ImGui::Checkbox("Unhook input when hidden", &InputHook::bUnhookWhenHidden);
+					ImGui::SameLine(); HelpMarker("Unhooking the input when the main menu is hidden will stop you from interacting with the overlay widget, avoiding accidental clicks");
+					ImGui::TreePop();
+					ImGui::Spacing();
 				}
 			}
 
-			if (ImGui::CollapsingHeader("Sample Menu B"))
+			if (ImGui::CollapsingHeader("Settings##1"))
 			{
-				ImGui::Columns(2);
-				ImGui::Checkbox("No titlebar", &no_titlebar); ImGui::NextColumn();
-				ImGui::Checkbox("No scrollbar", &no_scrollbar); ImGui::NextColumn();
-				ImGui::Checkbox("No menu", &no_menu); ImGui::NextColumn();
-				ImGui::Checkbox("No move", &no_move); ImGui::NextColumn();
-				ImGui::Checkbox("No resize", &no_resize); ImGui::NextColumn();
-				ImGui::Checkbox("No collapse", &no_collapse); ImGui::NextColumn();
-				ImGui::Checkbox("No nav", &no_nav); ImGui::NextColumn();
-				ImGui::Checkbox("No background", &no_background);
-				ImGui::Columns(1);
-				ImGui::Spacing(); ImGui::Separator(); ImGui::Spacing();
+				if (ImGui::TreeNodeEx("Selections##2", ImGuiTreeNodeFlags_DefaultOpen))
+				{
+					ImGui::Columns(2, NULL, false);
+					ImGui::Checkbox("Option1", &bOption1); ImGui::NextColumn();
+					ImGui::Checkbox("Option2", &bOption2); ImGui::NextColumn();
+					ImGui::Checkbox("Option3", &bOption3); ImGui::NextColumn();
+					ImGui::Checkbox("Option4", &bOption4); ImGui::SameLine(); 
+					HelpMarker("Help marker for option 4"); ImGui::NextColumn();
+					ImGui::Checkbox("Option5", &bOption5); ImGui::NextColumn();
+					ImGui::Checkbox("Option6", &bOption6); ImGui::NextColumn();
+					ImGui::Columns(1);
+					ImGui::Separator();
+					ImGui::Columns(2, NULL, false);
+					ImGui::Checkbox("Option7", &bOption7); ImGui::NextColumn();
+					ImGui::Checkbox("Option8", &bOption8); ImGui::NextColumn();
+					ImGui::Checkbox("Option9", &bOption9); ImGui::NextColumn();
+					ImGui::Checkbox("Option10", &bOption10); ImGui::NextColumn();
+					ImGui::Checkbox("Option11", &bOption11); ImGui::NextColumn();
+					ImGui::Checkbox("Option12", &bOption12); ImGui::SameLine();
+					HelpMarker("Help marker for option 12"); ImGui::NextColumn();
+					ImGui::NextColumn();
+					ImGui::Columns(1);
+					ImGui::TreePop();
+				}
 			}
 
-			if (ImGui::CollapsingHeader("Sample Menu C"))
-			{
-				ImGui::Text("Blah blah blah...");
-			}
-
-			if (ImGui::CollapsingHeader("Sample Menu D"))
-			{
-				ImGui::Text("Blah blah blah...");
-			}
-
-			if (ImGui::CollapsingHeader("Sample Menu E"))
-			{
-				ImGui::Text("Blah blah blah...");
-			}
 		}
 
 		ImGui::Render();

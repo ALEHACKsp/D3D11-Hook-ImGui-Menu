@@ -78,3 +78,4 @@ ImGui_Test2/x64/Release/imgui_demo.obj
 ImGui_Test2/x64/Release/imgui.obj
 ImGui_Test2/x64/Release/dx11.obj
 ImGui_Test2/x64/Release/dllmain.obj
+.vs/ImGui_Test2/v16/ipch/AutoPCH/2327635e705b8e92/INPUTHOOK.ipch
