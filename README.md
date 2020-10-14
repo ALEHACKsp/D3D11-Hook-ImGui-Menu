@@ -5,4 +5,4 @@ Credits: Sh0ckFR, ImGui
 
 See https://github.com/ocornut/imgui for in-depth examples of usage
 
-![Example](https://i.imgur.com/1XEevnW.png)
+![Example](https://i.imgur.com/R9FZEwE.png)
